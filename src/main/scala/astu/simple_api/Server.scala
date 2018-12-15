@@ -1,9 +1,10 @@
 package astu.simple_api
 
 import astu.simple_api.domain.salary.SalaryService
+import astu.simple_api.domain.shopping.ShoppingService
 import domain.bills.BillService
-import infrastructure.endpoint.{BillEndpoints, SalaryEndpoints}
-import infrastructure.repository.doobie.{DoobieBillRepositoryInterpreter, DoobieSalaryRepositoryInterpreter}
+import infrastructure.endpoint.{BillEndpoints, SalaryEndpoints, ShoppingEndpoints}
+import infrastructure.repository.doobie.{DoobieBillRepositoryInterpreter, DoobieSalaryRepositoryInterpreter, DoobieShoppingRepositoryInterpreter}
 import config.{DatabaseConfig, SimpleApiConfig}
 import cats.effect._
 import cats.implicits._
@@ -16,15 +17,17 @@ import scala.concurrent.ExecutionContext.Implicits.global
 object Server extends IOApp {
   def createServer[F[_]: ContextShift : ConcurrentEffect : Timer]: Resource[F, ExitCode] =
     for {
-      conf          <- Resource.liftF(SimpleApiConfig.load[F])
-      xa            <- DatabaseConfig.dbTransactor(conf.db, global, global)
-      billRepo      =  DoobieBillRepositoryInterpreter[F](xa)
-      billService   =  BillService[F](billRepo)
-      salaryRepo    =  DoobieSalaryRepositoryInterpreter[F](xa)
-      salaryService =  SalaryService[F](salaryRepo)
-      services      =  BillEndpoints.endpoints[F](billService) <+> SalaryEndpoints.endpoints[F](salaryService)
-      httpApp       =  Router("/" -> services).orNotFound
-      exitCode      <- Resource.liftF(
+      conf            <- Resource.liftF(SimpleApiConfig.load[F])
+      xa              <- DatabaseConfig.dbTransactor(conf.db, global, global)
+      billRepo        =  DoobieBillRepositoryInterpreter[F](xa)
+      billService     =  BillService[F](billRepo)
+      salaryRepo      =  DoobieSalaryRepositoryInterpreter[F](xa)
+      salaryService   =  SalaryService[F](salaryRepo)
+      shoppingRepo    =  DoobieShoppingRepositoryInterpreter[F](xa)
+      shoppingService =  ShoppingService[F](shoppingRepo)
+      services        =  BillEndpoints.endpoints[F](billService) <+> SalaryEndpoints.endpoints[F](salaryService) <+> ShoppingEndpoints.endpoints[F](shoppingService)
+      httpApp         =  Router("/" -> services).orNotFound
+      exitCode        <- Resource.liftF(
         BlazeServerBuilder[F]
           .bindHttp(8080, "localhost")
           .withHttpApp(httpApp)
