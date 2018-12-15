@@ -2,9 +2,10 @@ package astu.simple_api
 
 import astu.simple_api.domain.salary.SalaryService
 import astu.simple_api.domain.shopping.ShoppingService
+import astu.simple_api.domain.users.UserService
 import domain.bills.BillService
-import infrastructure.endpoint.{BillEndpoints, SalaryEndpoints, ShoppingEndpoints}
-import infrastructure.repository.doobie.{DoobieBillRepositoryInterpreter, DoobieSalaryRepositoryInterpreter, DoobieShoppingRepositoryInterpreter}
+import infrastructure.endpoint.{BillEndpoints, SalaryEndpoints, ShoppingEndpoints, UserEndpoints}
+import infrastructure.repository.doobie.{DoobieBillRepositoryInterpreter, DoobieSalaryRepositoryInterpreter, DoobieShoppingRepositoryInterpreter, DoobieUserRepositoryInterpreter}
 import config.{DatabaseConfig, SimpleApiConfig}
 import cats.effect._
 import cats.implicits._
@@ -25,7 +26,12 @@ object Server extends IOApp {
       salaryService   =  SalaryService[F](salaryRepo)
       shoppingRepo    =  DoobieShoppingRepositoryInterpreter[F](xa)
       shoppingService =  ShoppingService[F](shoppingRepo)
-      services        =  BillEndpoints.endpoints[F](billService) <+> SalaryEndpoints.endpoints[F](salaryService) <+> ShoppingEndpoints.endpoints[F](shoppingService)
+      userRepo        =  DoobieUserRepositoryInterpreter[F](xa)
+      userService     =  UserService[F](userRepo)
+      services        =  BillEndpoints.endpoints[F](billService) <+>
+                            SalaryEndpoints.endpoints[F](salaryService) <+>
+                            ShoppingEndpoints.endpoints[F](shoppingService) <+>
+                            UserEndpoints.endpoints[F](userService)
       httpApp         =  Router("/" -> services).orNotFound
       exitCode        <- Resource.liftF(
         BlazeServerBuilder[F]
