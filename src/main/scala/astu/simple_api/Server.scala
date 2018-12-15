@@ -1,15 +1,16 @@
 package astu.simple_api
 
+import astu.simple_api.domain.salary.SalaryService
 import domain.bills.BillService
-import infrastructure.endpoint.BillEndpoints
-import infrastructure.repository.doobie.DoobieBillRepositoryInterpreter
+import infrastructure.endpoint.{BillEndpoints, SalaryEndpoints}
+import infrastructure.repository.doobie.{DoobieBillRepositoryInterpreter, DoobieSalaryRepositoryInterpreter}
 import config.{DatabaseConfig, SimpleApiConfig}
-
 import cats.effect._
 import cats.implicits._
 import org.http4s.server.Router
 import org.http4s.server.blaze.BlazeServerBuilder
 import org.http4s.implicits._
+
 import scala.concurrent.ExecutionContext.Implicits.global
 
 object Server extends IOApp {
@@ -19,7 +20,9 @@ object Server extends IOApp {
       xa            <- DatabaseConfig.dbTransactor(conf.db, global, global)
       billRepo      =  DoobieBillRepositoryInterpreter[F](xa)
       billService   =  BillService[F](billRepo)
-      services      =  BillEndpoints.endpoints[F](billService)
+      salaryRepo    =  DoobieSalaryRepositoryInterpreter[F](xa)
+      salaryService =  SalaryService[F](salaryRepo)
+      services      =  BillEndpoints.endpoints[F](billService) <+> SalaryEndpoints.endpoints[F](salaryService)
       httpApp       =  Router("/" -> services).orNotFound
       exitCode      <- Resource.liftF(
         BlazeServerBuilder[F]

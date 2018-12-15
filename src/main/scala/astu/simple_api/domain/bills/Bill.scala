@@ -1,6 +1,6 @@
 package astu.simple_api.domain.bills
 
-import java.time.{Instant, LocalDateTime}
+import java.time.Instant
 
 case class Bill (
   id: Int,
