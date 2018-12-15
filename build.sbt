@@ -3,7 +3,7 @@ name := "simple-api"
 version := "0.1"
 scalaVersion := "2.12.8"
 
-val CatsVersion            = "1.4.0"
+val CatsVersion            = "1.5.0"
 val CirceVersion           = "0.10.1"
 val DoobieVersion          = "0.6.0"
 val EnumeratumVersion      = "1.5.13"
@@ -33,6 +33,10 @@ libraryDependencies ++= Seq(
 )
 
 scalacOptions ++= Seq(
+  "-encoding", "utf-8",                // Specify character encoding used by source files.
+  "-language:existentials",            // Existential types (besides wildcard types) can be written and inferred
+  "-language:experimental.macros",     // Allow macro definition (besides implementation and application)
   "-language:higherKinds",             // Allow higher-kinded types
+  "-language:implicitConversions",     // Allow definition of implicit functions called views
   "-Ypartial-unification",             // Enable partial unification in type constructor inference
 )

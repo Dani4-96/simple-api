@@ -1,13 +1,18 @@
 package astu.simple_api.domain.bills
 
-import astu.simple_api.domain.BillNotFoundError
 import cats.Monad
-import cats.data.EitherT
 
-class BillService[F[_]: Monad](billRepo: BillRepositoryAlgebra[F]) {
+class BillService[F[_]: Monad](repository: BillRepositoryAlgebra[F]) {
+  import cats.syntax.all._
 
-  def getBill(name: String): EitherT[F, BillNotFoundError.type, Bill] =
-    EitherT.fromOptionF(billRepo.get(name), BillNotFoundError)
+  def get(userId: Int): F[List[Bill]] =
+    repository.getByUserId(userId)
+
+  def add(bill: BillData, userId: Int): F[Bill] =
+    repository.add(bill, userId)
+
+  def delete(id: Int): F[Unit] =
+    repository.delete(id).as(())
 }
 
 object BillService {
