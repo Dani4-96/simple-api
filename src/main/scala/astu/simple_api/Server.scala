@@ -12,6 +12,7 @@ import cats.implicits._
 import org.http4s.server.Router
 import org.http4s.server.blaze.BlazeServerBuilder
 import org.http4s.implicits._
+import org.http4s.server.middleware.CORS
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
@@ -36,7 +37,7 @@ object Server extends IOApp {
       exitCode        <- Resource.liftF(
         BlazeServerBuilder[F]
           .bindHttp(8080, "localhost")
-          .withHttpApp(httpApp)
+          .withHttpApp(CORS(httpApp))
           .serve
           .compile
           .drain
